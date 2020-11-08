@@ -8,14 +8,14 @@ import React, {
 } from "react";
 
 import {
-  BrowserRouter as Router,
+  // BrowserRouter as Router,
   withRouter,
   Route,
   Link,
   Switch
 } from "react-router-dom";
 
-import { AnimatePresence } from "framer-motion";
+// import { AnimatePresence } from "framer-motion";
 import {
   Tabs,
   Tab,
@@ -28,7 +28,7 @@ import {
 import {
   Home,
   Favorite,
-  VideoLibrary,
+  // VideoLibrary,
   History,
   GetApp
 } from "@material-ui/icons/";
@@ -68,9 +68,9 @@ const CustomTab = withStyles({
   indicator: {
     display: "none"
   },
-  labelIcon: {
-    margin: 0
-  }
+  // labelIcon: {
+  //   margin: 0
+  // }
 })(Tabs);
 
 const CustomTabs = withStyles({

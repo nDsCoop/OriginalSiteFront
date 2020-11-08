@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { withStyles, Typography, Grid, Slider } from "@material-ui/core/";
-import { PauseCircleFilled } from "@material-ui/icons/";
+// import { PauseCircleFilled } from "@material-ui/icons/";
 
 const PrettoSlider = withStyles({
   root: {
@@ -65,7 +65,7 @@ const formatTime = secs => {
 };
 
 const TimelineController = ({ audioState, player, minimized }) => {
-  const [value, setValue] = useState(50);
+  // const [value, setValue] = useState(50);
   const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {

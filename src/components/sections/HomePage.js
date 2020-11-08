@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Typography } from "@material-ui/core";
-
+// import { Typography } from "@material-ui/core";
 import SongCard from "./SongCard";
-
 import youtubeSearch from "../../apis/youtubeSearch";
 
 // make a permanent playlist object with few songs catergory

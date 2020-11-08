@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import loadingGif from '../images/logo.svg';
+import loadingGif from '../images/Logosvg2.svg';
 import styled from 'styled-components';
 
 

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import logo from '../images/logoSvg.svg';
+import logo from '../images/svgnds.png';
 import {FaAlignRight} from 'react-icons/fa';
 import {Link} from 'react-router-dom';
 import styled from 'styled-components';
@@ -19,7 +19,7 @@ class Navbar extends Component {
 				<div className="nav-center">
 	 				<div className="nav-header">
 	 					<Link to="/">
-	 						<img style={{maxHeight: "2.6rem", maxWidth: "2.6rem"}} className="logoApp" src={logo} alt="Beach Resort" />
+	 						<img style={{maxHeight: "2.4rem", maxWidth: "2.4rem"}} className="logoApp" src={logo} alt="Beach Resort" />
 	 					</Link>
 	 					<button type="button" 
 	 						className="nav-btn"
@@ -33,13 +33,16 @@ class Navbar extends Component {
 							<Link to="/">Home</Link>
 						</li>
 						<li>
-							<Link to="/page1">Page1</Link>
+							<Link to="/page1">Music</Link>
 						</li>
 						<li>
-							<Link to="/page2">Page2</Link>
+							<Link to="/page2">Weather</Link>
 						</li>
 						<li>
-							<Link to="/page3">Page3</Link>
+							<Link to="/page3">Chat</Link>
+						</li>
+						<li>
+							<Link to="/about">About</Link>
 						</li>
 					</ul>
 	 			</div>

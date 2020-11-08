@@ -102,9 +102,9 @@ const GoogleSignIn = () => {
   /**
    *  Sign out the user upon button click.
    */
-  function handleSignoutClick(event) {
-    gapi.auth2.getAuthInstance().signOut();
-  }
+  // function handleSignoutClick(event) {
+  //   gapi.auth2.getAuthInstance().signOut();
+  // }
 
 
   function handleClose() {

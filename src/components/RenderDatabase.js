@@ -77,7 +77,7 @@ export const useSongMethods = songId => {
   };
 
   const deleteTheSong = async checkBox => {
-    const deleted = await deleteSongAudio(currentId);
+    // const deleted = await deleteSongAudio(currentId);
     setDeleteDialogState(false);
     setSnackbarMsg("Deleted Successfully");
 
@@ -123,9 +123,9 @@ const RenderDatabase = props => {
   const setCurrentVideoSnippet = data => {
     dispatch({ type: "setCurrentVideoSnippet", snippet: data });
   };
-  const setSnackbarMsg = data => {
-    dispatch({ type: "setSnakbarMsg", snippet: data });
-  };
+  // const setSnackbarMsg = data => {
+  //   dispatch({ type: "setSnakbarMsg", snippet: data });
+  // };
 
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
 

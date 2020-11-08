@@ -1,7 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
+import React from "react";
 // import { GlobalContext } from "./GlobalState";
 import { Link } from "react-router-dom";
-import { Button, Grid } from "@material-ui/core";
+import { Grid } from "@material-ui/core";
 import Banner from "./Banner";
 import Hero from "./Hero";
 import GoogleSignIn from "./GoogleSignIn";

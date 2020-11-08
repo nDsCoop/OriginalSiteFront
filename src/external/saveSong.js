@@ -1,7 +1,7 @@
 import Dexie from "dexie";
 import "dexie-observable";
-import { promised } from "q";
-import { promises } from "fs";
+// import { promised } from "q";
+// import { promises } from "fs";
 
 // Define your database
 export const db = new Dexie("Song_Database");
@@ -122,7 +122,7 @@ function fetchProxiedBlob(url) {
   const URL = url;
   return new Promise(function(resolve, reject) {
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "https://server.ylight.xyz/proxy/" + URL);
+    xhr.open("GET", "http://localhost:9150/proxy/" + URL);
     xhr.responseType = "blob";
     xhr.onload = function() {
       var status = xhr.status;
@@ -138,7 +138,7 @@ function fetchProxiedBlob(url) {
     xhr.send();
     setTimeout(() => {
       xhr.abort();
-      xhr.open("GET", "https://server.ylight.xyz/proxy/" + URL);
+      xhr.open("GET", "http://localhost:9150/proxy/" + URL);
 
       xhr.send();
     }, 1000);

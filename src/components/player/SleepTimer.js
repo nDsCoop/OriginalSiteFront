@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   Switch,
   DialogActions,
   Button,
   FormControlLabel,
-  FormControl,
-  DialogTitle,
+  // FormControl,
+  // DialogTitle,
   Typography
 } from "@material-ui/core";
 import { TimerOff, Timer } from "@material-ui/icons";

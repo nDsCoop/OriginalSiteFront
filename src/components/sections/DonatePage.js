@@ -1,8 +1,7 @@
 import React from "react";
 import { Typography } from "@material-ui/core";
 import "./DonatePageStyle.css";
-import paytmLogo from "../../images/Paytm.svg";
-import paytmQr from "../../images/paytmQR.jpg";
+
 const DonatePage = () => {
   return (
     <main style={{ margin: "10px" }}>

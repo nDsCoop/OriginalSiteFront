@@ -6,20 +6,24 @@ import styled from 'styled-components';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useCookies } from 'react-cookie';
 import { Divider} from '@material-ui/core';
-
+import {Helmet} from "react-helmet";
+import "../external/fetchIPclient";
 const Home = () => {
 		const {
 			isAuthenticated,
 			loginWithRedirect,
 			logout,
 			user,
-			isLoading,
+			// isLoading,
 		  } = useAuth0();
 		  const [cookies, setCookie] = useCookies(['name']);
 		  const isUser = isAuthenticated && user;
 		  setCookie('name', {user} , { path: '/' });
 	 	return (
 	 	<>
+		 <Helmet>
+			<title>Home | nDsBuilding</title>
+		</Helmet>
 	 	<Hero>
 	 		<Banner title="Welcome to nDsApp" subtitle="
 				Interesting Experience Right Now">
@@ -29,9 +33,9 @@ const Home = () => {
 				{isUser && user.name && <h4>Welcome, <strong>{user.nickname.toUpperCase()}</strong></h4>}     
 				{isUser ?
 					
-					<Link className="btn-primary" onClick={() => {logout({returnTo:window.location.origin})}}>logout</Link>
+					<Link to='/' className="btn-primary" onClick={() => {logout({returnTo:window.location.origin})}}>logout</Link>
 					:
-					<Link className="btn-primary" onClick={loginWithRedirect}>login</Link>
+					<Link to='' className="btn-primary" onClick={loginWithRedirect}>login</Link>
 				}
 			</Wrapper>
 	 	 	</Banner>

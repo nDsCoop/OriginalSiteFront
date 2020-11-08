@@ -4,7 +4,8 @@ import Service from './service';
 import Realtime from './realtime';
 import moment from "moment";
 import {ObjectID} from './helpers/objectid';
-
+import bcrypt from 'bcryptjs';
+import axios from "../src/apis/axios";
 
 export default class Store {
     constructor(appComponent){
@@ -17,18 +18,119 @@ export default class Store {
         this.user = this.getUserFromLocalStorage();
         this.token = this.getTokenFromLocalStorage();
         this.users = new OrderedMap();
-
         this.realtime = new Realtime(this);
         this.fetchUserChannels();
         this.search = {
             users: new OrderedMap(),
         }
+    }
 
+    editPassword(oldPassword, newPassword, ipClient){
+
+        const userToken = this.getUserTokenId();
+        const contents = {
+            oldPassword: oldPassword,
+            newPassword: newPassword
+        }
+        if(userToken){
+            const options = {
+                headers: {
+                    authorization: userToken,
+                }
+            }
+
+            return new Promise((resolve, reject) => {
+                // console.log(contents);
+                this.service.post('api/user/editpassword', contents, options).then((res) => {
+                    //soon add code process
+                    if(!res.data.success){
+                        console.log(res.data.error)
+                    }
+                    const currentUser =this.getCurrentUser();
+                    const email = _.get(currentUser, 'email', '');
+                    const name = _.get(currentUser, 'name', '')
+                    const post = {
+                        email: email,
+                        name: name,
+                        ip: ipClient.ip,
+                        country: ipClient.country,
+                        city: ipClient.city,
+                    }
+                    console.log(post);
+                    // await axios
+                    // .post('/ndsapi/announce/changeinfouser', post)
+                    // .then(function(response) {
+                    //     console.log("Successful");
+                    // }).catch(err => console.log(err))
+
+                    return resolve(currentUser)
+
+
+                }).catch((err) => {
+                    const message = _.get(err, 'response.data.error.message', 'Changeing Password Error!');
+                    return reject(message);
+                });
+            })
+
+        }
+    }
+
+    uploadUserAvatar(formData){
+        const userToken = this.getUserTokenId();
+
+        if(userToken){
+            const options = {
+                headers: {
+                    authorization: userToken,
+                }
+            }
+
+            this.service.post('api/user/uploadavatar', formData, options).then((res) => {
+
+                // console.log(res.data.success);
+                if(!res.data.success){
+                    console.log(res.data.error)
+                }
+                if (res.data.success) {
+                    this.editInfoUser('avatar', res.data.url )
+                }
+
+            }).catch((err) => {
+                console.log("Send Error: ", err);
+            });
+        }
+    }
+    editUser(field, value){
+        if(value){
+            console.log(field, value , typeof(value));
+            this.editInfoUser(field, value);
+        }
+        
+    }
+    setThemeToLocalStorage(isDark = false ){
+
+        console.log("Select theme Dark: ", isDark);
+        localStorage.setItem('themeOfChat', isDark);
+       
+    }
+    getThemeFromLocalStorage(){
+        let theme = null;
+        const data = localStorage.getItem('themeOfChat');
+        if(data){
+            try{
+                theme = data;
+            }
+            catch (err){
+                console.log(err);
+            }
+        }
+        console.log("Get theme Dark from localStorage: ", theme);
+        return theme;
     }
 
     upLoadfile(formData){
         const userToken = this.getUserTokenId();
-
+        console.log('File wav get in store: ',formData);
         if(userToken){
 
             this.service.post('api/messages/uploadfiles', formData).then((res) => {
@@ -57,8 +159,6 @@ export default class Store {
                 console.log("Send files Error: ", err);
             });
         }
-    
-       
     }
     fetchUserChannels(){
         const userToken =this.getUserTokenId();
@@ -83,7 +183,9 @@ export default class Store {
         }
     }
     addUserToCache(user){
-        user.avatar = this.loadUserAvatar(user);
+        if(!user.avatar){
+            user.avatar = this.loadUserAvatar(user);
+        }
         const id = _.toString(user._id);
         this.users = this.users.set(id, user);
         return user;
@@ -94,14 +196,20 @@ export default class Store {
     }
     loadUserAvatar(user){
 
-            return `https://api.adorable.io/avatars/100/${user._id}.png`
+            return `useravatars\\default_imgSvg_usernDs.svg`
        
     }
     startSearchUsers(q = ""){
         this.search.users = this.search.users.clear();
         //query to backend server and get list of users
         const data = {search : q};
-        
+        //get current user it own
+        const currentUser =this.getCurrentUser();
+        const currentUserId = _.get(currentUser, '_id');
+       
+        // if(_.trim(search).length){
+        //    searchItems = users.filter((user) =>_.get(user, '_id') !== currentUserId && _.includes(_.toLower(_.get(user, 'name')), keyword));
+        // }
         this.service.post('api/users/search', data).then((res) => {
             //list off users match
             const users = _.get(res, 'data', []);
@@ -109,16 +217,22 @@ export default class Store {
             _.each(users, (user) => {
                //cache to this.users
                //add user to this.search.users
-               user.avatar = this.loadUserAvatar(user);
-               const userId = `${user._id}`;
-               this.users = this.users.set(userId, user);
-               this.search.users = this.search.users.set(userId, user);
-
+                if(!user.avatar){
+                    user.avatar = this.loadUserAvatar(user);
+                }
+                const userId = `${user._id}`;
+                if(userId !== currentUserId){
+                    this.users = this.users.set(userId, user);
+                    this.search.users = this.search.users.set(userId, user);
+                }
+                 if(!_.trim(q).length){
+                    this.search.users = new OrderedMap();
+                }
            });
            this.update();
 
         }).catch((err) => {
-            console.log(" searching error", err);
+            console.log("Searching Error", err);
         }); 
     }
 
@@ -140,15 +254,15 @@ export default class Store {
     signOut(){
 
         const userId = _.toString(_.get(this.user, '_id', null));
+        //logout in cache
+        this.users = this.users.update(userId, (user) => {
+            if(user) {
+                user.online = false;
+            }
+            return user;
+        })
         //request server and logout this user
         const tokenId = _.get(this.token, '_id', null);
-
-        const options = {
-            headers : {
-                authorization: tokenId
-            }
-        }
-        this.service.get('api/user/logout', options);
         this.isConnected();
         this.user = null;
         localStorage.removeItem('me');
@@ -157,6 +271,13 @@ export default class Store {
             this.users = this.users.remove(userId);
         }
         this.clearCacheData();
+        const options = {
+            headers : {
+                authorization: tokenId
+            }
+        }
+        this.service.get('api/user/logout', options);
+   
         this.update();
     }
 
@@ -218,7 +339,9 @@ export default class Store {
         
     
     setCurrentUser(user){
-        user.avatar = this.loadUserAvatar(user);
+        if(!user.avatar){
+            user.avatar = this.loadUserAvatar(user);
+        }
         this.user = user;
         if(user){
             
@@ -232,31 +355,49 @@ export default class Store {
     }
 
     register(user){
+        const saltRounds = 10;
+        const password = bcrypt.hashSync(user.password, saltRounds);
+        console.log("Email Register is: ", user.email);
+        console.log("Password Register is: ", password);
         return new Promise((resolve, reject) => {
-            this.service.post('api/users', user).then((user) =>{
-                console.log("Account Created ", user);
-                return resolve(user);
-            }).catch((err) => {
+            this.service.post('api/users', user).then((res) =>{
 
-                return reject("An Error create your account!");
-            })
+                console.log("Account Created ", res.data);
+
+                // const post = {
+                //     email: email,
+                //     message: message,
+                //     token: captchaToken,
+                //     name: name,
+                // }
+
+                return resolve(res.data);
+                
+            }).catch((err) => {
+                const message = _.get(err, 'response.data.error.message', 'Register Error!');
+                return reject(message);
+            });
         })
 
     }
+ 
 
-    login(email = null, password = null){
+   
 
+    login(email = null, password = null, ipClient = null){
         const userEmail = _.toLower(email);
+
         const user = {
             email: userEmail,
             password: password,
+            ipClient: ipClient,
         }
-        console.log("Logining with: ", user);
 
+        // console.log("Logining with: ", user);
         return new Promise((resolve, reject) => {
 
             this.service.post('api/users/login', user).then((res) => {
-                //that mean successful login
+            //     // that mean successful login
                 const accessToken = _.get(res, 'data'); 
                 const user = _.get(accessToken, 'user');
 
@@ -266,17 +407,14 @@ export default class Store {
 
                 // begin fetch user's channel
                 this.fetchUserChannels();
-                //Call to realtime and connect again to socket server with this user
-                
-
-
-
+                // Call to realtime and connect again to socket server with this user
 
             }).catch((err) => {
-                
-                const message = _.get(err, 'res.data.err.message', 'Login Error');
+                // login error
+                const message = _.get(err, 'response.data.error.message', 'Login Error');
                 return reject(message);
             })
+
         });
         // const _this = this;
         // return new Promise((resolve, reject) => {
@@ -398,6 +536,22 @@ export default class Store {
             })
         }
         this.update();
+    }
+    editInfoUser(field, value){
+        if(value){
+
+        const obj = {
+            payload: value,
+            field: field,
+        }
+            this.realtime.send(
+                {
+                    action: 'edit_user',
+                    payload: {obj},
+                }
+            );
+        }
+    this.update();
     }
 
     addTyping(channel, typing = false){

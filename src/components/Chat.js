@@ -1,143 +1,143 @@
 import React, { useState, useEffect } from 'react'
-import { Avatar, IconButton, InputBase } from '@material-ui/core'
-import { MdMoreVert, MdAttachFile, MdSearch, MdSend, MdMic } from 'react-icons/md'
-import { InsertEmoticon} from '@material-ui/icons'
-import axios from "../apis/axios";
-import Pusher from "pusher-js";
+import DragDrop from './DragDrop'
 
-function Chat() {
-    const [input, setInput] = useState("");
-    const [messages, setMessages] = useState([]); 
-    useEffect(() => {
-        axios.get("/messages/sync").then((response) => {
-            setMessages(response.data);
-        });
-    }, []);
-    useEffect(() => {
-        
- 
-        const pusher = new Pusher("02b865ac879689d71e48", {
-        cluster: "ap1",
-        });
-    
-        const channel = pusher.subscribe("messages");
-            channel.bind("inserted", (newMessage) => {
-            // alert(JSON.stringify(newMessage));
-            setMessages([...messages, newMessage]);
-        });
-        return () => {
-            channel.unbind_all();
-            channel.unsubscribe();
-        };
-    }, [messages]);
+const Chat = props => {
+  const [message, setMessage] = useState('')
+  const [user, setUser] = useState({ uid: 0, })
+  const [imageZoom, setImageZoom] = useState(false)
+  const [selectedImage, setSelectedImage] = useState('')
 
-    const sendMessage = async (e) => {
-        //code here
-        e.preventDefault();
-        axios.post("/messages/new", {
-            message: input,
-            name: "nDs",
-            timestamp: "just now",
-            received: false,
-        });
-        setInput('');
-    };
+  const scrollToBottom = () => {
+    const chat = document.getElementById("chatList");
+    chat.scrollTop = chat.scrollHeight
+  }
 
-    return (
-        <div className="chat">
-            <div className="chat_header">
-                <Avatar />
-                <div className="chat_headerInfo">
-                    <h4>Room name</h4>
-                    <p>Last seen at...</p>
-                </div>
-                <div className="chat_headerRight" style={{ color: "rgba(0, 0, 0, 0.5)"}}>
-                    <IconButton>
-                        <MdSearch />
-                    </IconButton>
-                    <IconButton>
-                        <MdAttachFile/>  
-                    </IconButton>
-                    <IconButton>
-                        <MdMoreVert />  
-                    </IconButton>
-                </div>
+  useEffect(() => {
+    scrollToBottom()
+    setUser({ 
+      uid: props.user.uid,
+      name: props.user.name,
+     })
+  }, [props])
 
+  const sendMessage = (msg) => {
+    props.sendMessage(msg);
+    scrollToBottom()
+  }
+
+  const handleSubmit = event => {
+    if (message === '') return
+    event.preventDefault();
+    sendMessage({type:'text', message: { id: user.uid, sender: {uid: user.uid, name: user.name, }, data: { text: message } }})
+    setMessage('')
+  };
+
+  const handleChange = event => {
+    setMessage(event.target.value)
+  }
+
+  const renderMessage = (userType, data) => {
+    console.log('===========', data)
+    const message = data.message
+
+    const msgDiv = data.type === 'text' && (
+      <div className="msg">
+        <p>{message.sender.name}</p>
+        <div className="message"> {message.data.text}</div>
+      </div>
+    ) || (
+      <div className="msg">
+        <p>{message.sender.name}</p>
+        <img
+          onClick={() => {
+            setImageZoom(true)
+            setSelectedImage(message.data)
+          }}
+          className="message"
+          style={{
+            width: 200,
+            // height: 100
+            cursor: 'pointer',
+          }}
+          src={message.data} />
+      </div>
+    )
+
+    return (<li className={userType} >{ msgDiv }</li>)
+
+  }
+
+  const showEnlargedImage = (data) => {
+    return (<img
+      src={data}
+      style={{
+        backgroundColor: 'black',
+        position: 'relative',
+        zIndex: 100,
+        display: 'block',
+        cursor: 'pointer',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        padding: 20,
+        borderRadius: 20,
+      }}
+      onClick={() => setImageZoom(false)}
+    />)
+  }
+
+  return (
+    <div>
+      {imageZoom && showEnlargedImage(selectedImage)}
+
+      <div className="chatWindow" style={{
+        zIndex: 10,
+        position: 'absolute',
+        right: 5,
+        top: 190,
+        bottom: 140,
+        width: 350,
+        // height: 650,
+    }}>
+        <ul className="chat" id="chatList">
+          {props.messages.map(data => (
+            <div key={data.id}>
+              {user.uid === data.message.sender.uid ? renderMessage('self', data) : (renderMessage('other', data))}
             </div>
-            <div className="chat_body">
-                {messages.map((message) => {
-                     if(message.received) {
-                         return (
-                            <div className="chat_deliver">
-                                <span className="chat_info">
-                                    <p className="chat_name">{message.name}</p> 
-                                    <p className="chat_timestamp">{message.timestamp}</p>
-                                </span>
-                                <p className="chat_massage">
-                                    {message.message}
-                                </p>
-                            </div>
-                         )
-                    } 
-                    return (
-                        <div className="chat_reciever">
-                            <div className="chat_info chat_reciever">
-                                <span className="chat_timestamp chat_reciever">
-                                    {message.timestamp}
-                                </span>
-                            </div>
-                            <p className="chat_massage chat_reciever">
-                            <span className="chat_name_recieve">{message.name}</span>
-                            <p>{message.message}</p>
-                            </p>
-                        </div>
-                    )
-                })}
-               
-                
-               
-            </div>
-            <div className="chat_footer">
-                <IconButton
-                    color="inherit"
-                    aria-label="Menu"
-                >
-                    <InsertEmoticon />
-                </IconButton>
-                
-                <form onSubmit={e => sendMessage(e)}
-                 style={{ width: "100%", display: "flex", background: "var(--clr-primary-8)", borderRadius: "1rem" }} >
-                    <InputBase
-                    fullWidth
-                    placeholder="Type your message..."
-                    autoFocus
-                    style={{ color: "#303030", paddingLeft: "10px", marginTop: ".1rem", fontFamily: "Piazzolla, serif" }}
-                    // onSubmit={e => onSearchSubmit(e)}
-                    value={input}
-                    onChange= { (e) => setInput(e.target.value)}
-                    
-                    // onChange={onChange}
-                    // // on click we will show popper
-                    // onClick={() => {
-                    //     setSearchState("clicked");
-                    //     setPopper(true);
-                    // }}
-                    />
-                </form>
-                <IconButton
-                    color="inherit"
-                    aria-label="Menu"
-                >
-                    <MdSend onClick={ sendMessage } type="submit"/>
-                </IconButton>
-                <IconButton
-                    color="inherit"
-                    aria-label="Menu"
-                >
-                    <MdMic />
-                </IconButton>
-            </div>
-        </div>
+          ))}
+        </ul>
+        <DragDrop
+          className="chatInputWrapper"
+          sendFiles={(files) => {
+            const reader = new FileReader()
+            reader.onload = (e) => {
+              //https://blog.mozilla.org/webrtc/large-data-channel-messages/
+              //https://lgrahl.de/articles/demystifying-webrtc-dc-size-limit.html
+              const maximumMessageSize = 262118 //65535 <=== 64KiB // 16384 <=== 16KiB to be safe
+              if (e.target.result.length <= maximumMessageSize)
+                sendMessage({ type: 'image', message: { id: user.uid, sender: { uid: user.uid, name: user.name, }, data: e.target.result } })
+              else
+                alert('Message exceeds Maximum Message Size!')
+            }
+
+            reader.readAsDataURL(files[0])
+          }}
+        >
+          <div>
+            <form onSubmit={handleSubmit}>
+              <input
+                className="textarea input"
+                type="text"
+                backgroundColor="rgba(0,0,0,0.3)"
+                color="rgba(199, 159, 199, 0.9)"
+                placeholder="Type your message.."
+                onChange={handleChange}
+                value={message}
+              />
+            </form>
+          </div>
+        </DragDrop>
+      </div>
+      </div>
     )
 }
 

@@ -12,6 +12,7 @@ import AuthWrapper from "./pages/AuthWrapper";
 import PrivateRoute from "./pages/PrivateRoute";
 import Login from './pages/Login';
 import Page3 from './pages/Page3';
+import About  from './pages/About';
 
 
 class App extends Component {
@@ -36,11 +37,14 @@ class App extends Component {
 					<Route path="/login">
 						<Login/>
 					</Route>
+					<Route path="/about">
+						<About/>
+					</Route>
 					<Route component={Errors} />
 				</Switch>
-			</AuthWrapper>
+			</AuthWrapper>			
 
-  );
+  		);
 	}
 }
 

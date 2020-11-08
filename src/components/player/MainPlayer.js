@@ -12,9 +12,6 @@ import RelatedVideos from "../RelatedVideos";
 import getAudioLink from "../../apis/getAudioLink";
 import youtubeSearch from "../../apis/youtubeSearch";
 import { updatePlayingSong } from "../../external/saveSong";
-
-import "../../external/saveCountry";
-
 import "../../style.css";
 
 import { GlobalContext } from "../GlobalState";
@@ -50,7 +47,7 @@ const MainPlayer = ({ location, history }) => {
   const [isRepeatOn, setIsRepeatOn] = useState(false);
   const [rating, setRating] = useState("none");
   const [isNextFromMini, setIsNextFromMini] = useState(false);
-  const [audioURL, setAudioURL] = useState(null);
+  // const [audioURL, setAudioURL] = useState(null);
   const body = document.querySelector("body");
 
   const audioPlayer = useRef();
@@ -127,7 +124,7 @@ const MainPlayer = ({ location, history }) => {
       });
 
       // set the audio data
-      const proxyURL = "https://server.ylight.xyz/proxy/";
+      // const proxyURL = "http://localhost:9150/proxy/";
       audioPlayer.current.src = res.data;
       playAudio();
 
@@ -412,20 +409,20 @@ const MainPlayer = ({ location, history }) => {
     // we will only change if its push  otherwise while changing song from playlist changes the state
 
     // Listen for changes to the current location.
-    const unlisten = history.listen(location => {
-      // location is an object like window.location
-      if (location.pathname === "/play") {
-        // we will only change if its push  otherwise while changing song from playlist changes the state
-        if (history.action !== "REPLACE") {
-          setPlayerState("maximized");
-          console.log("set player state to maximized");
-        }
-      } else {
-        setPlayerState("minimized");
-        console.log("set player state to minimized");
-      }
-      console.log(history);
-    });
+    // const unlisten = history.listen(location => {
+    //   // location is an object like window.location
+    //   if (location.pathname === "/play") {
+    //     // we will only change if its push  otherwise while changing song from playlist changes the state
+    //     if (history.action !== "REPLACE") {
+    //       setPlayerState("maximized");
+    //       console.log("set player state to maximized");
+    //     }
+    //   } else {
+    //     setPlayerState("minimized");
+    //     console.log("set player state to minimized");
+    //   }
+    //   console.log(history);
+    // });
   }, [history]);
 
   useEffect(() => {

@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useContext } from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
 import SimpleAppBar from "./header/SimpleAppBar";
-import MainPlayer from "./player/MainPlayer";
+// import MainPlayer from "./player/MainPlayer";
 import SwipeMenu from "./SwipeMenu";
-import SnackbarMessage from "./SnackbarMessage";
+// import SnackbarMessage from "./SnackbarMessage";
 import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
 import { blueGrey, blue } from "@material-ui/core/colors";
 

@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
 import { withRouter } from "react-router-dom";
-
+import fetchJsonp from "fetch-jsonp";
 import {
   InputBase,
   IconButton,
@@ -14,7 +14,7 @@ import { GlobalContext } from "../GlobalState";
 import suggestSearch from "../../apis/suggestSearch";
 import AutoSearchResult from "./AutoSearchResult";
 
-
+const API_URL = "http://suggestqueries.google.com/complete/search?client=youtube&q=";
 const SearchBox = ({ history, location }) => {
   let params = new URLSearchParams(location.search);
 
@@ -71,12 +71,23 @@ const SearchBox = ({ history, location }) => {
 
   // get autocomplete data form api
   const getAutocomplete = async () => {
-    const response = await suggestSearch.get("/", {
-      params: {
-        q: searchQuery
-      }
+    fetchJsonp(`${API_URL} + ${searchQuery}`)
+    .then(function(response) {
+      return response.json();
+    })
+    .then(json => {
+      setAutoSearch(json[1]);
+    })
+    .catch(function(ex) {
+      console.log("parsing failed", ex);
     });
-    setAutoSearch(response.data[0]);
+    // const response = await suggestSearch.get("", {
+    //   params: {
+    //     q: searchQuery
+    //   }
+    // });
+    // setAutoSearch(response.data[1]);
+    
   };
 
   // get youtube search result from api

@@ -1,10 +1,10 @@
 import React, { useState, useContext, useEffect } from "react";
 import {
-  IconButton,
+  // IconButton,
   Grid,
-  Slider,
+  // Slider,
   LinearProgress,
-  makeStyles,
+  // makeStyles,
   withStyles
 } from "@material-ui/core/";
 
@@ -13,12 +13,12 @@ import {
   GetApp,
   Reply,
   DoneOutline,
-  Done,
-  AlarmOff
+  // Done,
+  // AlarmOff
 } from "@material-ui/icons/";
 import VolumeController from "./VolumeController";
 import { useSongMethods } from "../RenderDatabase";
-import { downloadSong } from "../../external/saveSong";
+// import { downloadSong } from "../../external/saveSong";
 import SleepTimer from './SleepTimer'
 import { GlobalContext } from "../GlobalState";
 

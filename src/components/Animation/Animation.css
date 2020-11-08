@@ -1,0 +1,67 @@
+
+.snowfall canvas{
+	position: absolute;
+	z-index: -1;
+	background-color: #232324;
+}
+.snowfall .info{
+	position: absolute;
+	color: rgb(154, 190, 214);
+	top: 50%;
+	left:50%;
+	transform: translate(-50%,-50%);
+	text-align: center;
+	box-shadow: 0px 0.5px 15px rgba(0, 0, 0, 0.9);
+	padding:10px 35px;
+}
+.snowfall .info h1{
+	font-size: 3.5em;
+	text-shadow: 0px 0.5px 5px rgba(0, 0, 0, 0.5);
+}
+.snowfall .info h2{
+	font-size: 2.5em;
+	text-shadow: 0px 0.5px 5px rgba(0, 0, 0, 0.5);
+}
+.snowfall .info p{
+	font-size: 1.5em;
+	text-shadow: 0px 0.5px 5px rgba(0, 0, 0, 0.5);
+}
+
+
+/* body {
+	background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+	background-size: 400% 400%;
+	animation: gradient 15s ease infinite;
+}
+
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+} */
+
+
+@import url(https://fonts.googleapis.com/css?family=Calligraffitti);
+
+.container {
+  background: linear-gradient(135deg, rgba(52, 152, 219,0.5) 0%,rgba(243, 65, 65, 0.4) 100%)/*, url("http://i.imgbox.com/LmWSE419.jpg") */;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+
+h1 {
+
+  font-family: "Calligraffitti";
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+
+}
+

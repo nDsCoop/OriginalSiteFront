@@ -39,6 +39,12 @@ export default class Realtime{
         const payload = _.get(message, 'payload');
 
         switch(action){
+            case 'edit_user' :
+                const userId = _.get(payload, 'userId');
+                const value = _.get(payload, 'obj.payload', '');
+                const field = _.get(payload, 'obj.field', '')
+                this.updateInfoUser(userId, field, value);
+                break;
             case 'typing_status':
                 console.log(payload);
                 const obj = _.get(payload, 'obj');
@@ -70,6 +76,47 @@ export default class Realtime{
                 break;
         }
     }
+    updateInfoUser(userId, field, value){
+        const store = this.store;
+        const currentUser = store.getCurrentUser();
+        const currentUserId = _.get(currentUser, '_id');
+        // Get the existing data
+        let me = localStorage.getItem('me');
+        // If no existing data, create an array
+        // Otherwise, convert the localStorage string to an array
+        me = me ? JSON.parse(me) : {};
+        // Add new data to localStorage Array
+        me[field] = value;
+        // Save back to localStorage
+        localStorage.setItem('me', JSON.stringify(me));
+        store.setCurrentUser(me);
+        store.users = store.users.update(userId, (user) => {
+            if(user){
+                switch(field){
+                    case 'avatar':
+                        user.avatar = value;
+                    break;
+                    case 'name':
+                        user.name = value;
+                    break;
+                    case 'birthday':
+                        user.birthday = value;
+                    break;
+                    case 'phone':
+                        user.phone = value;
+                    break;
+                    case 'country':
+                        user.country = value;
+                    break;
+                    default:
+                    break;
+                }
+            }
+            return user;
+        });
+        store.update();
+
+    }
     onUpdateTypestatus(channelId, isTyping = false, typier){
         const store = this.store;
         store.channels = store.channels.update(channelId, (channel) => {
@@ -88,6 +135,7 @@ export default class Realtime{
         store.users = store.users.update(userId, (user) => {
             if(user){
                 user.online = isOnline;
+                user.lastConnection = new Date()
             }
             
             return user;
@@ -111,11 +159,11 @@ export default class Realtime{
             userId: _.get(payload, 'userId'),
             channelId: _.get(payload, 'channelId'),
             created: _.get(payload, 'created', new Date()),
-            type: _.get(payload, 'type'),
+            type: _.get(payload, 'type', ''),
             me: currentUserId === _.toString(_.get(payload, 'userId')),
             user: user,
         };
-        console.log("Mess listen from fetch: ", messageObject);
+        // console.log("Mess listen from fetch: ", messageObject);
         store.setMessage(messageObject, notify);
 
     }
@@ -151,11 +199,17 @@ export default class Realtime{
         store.addChannel(channelId, channel);
     }
     send( msg = {}){
-        const isConnected = this.isConnected;
-        if(this.ws && isConnected){
-            const msgString = JSON.stringify(msg);
-            this.ws.send(msgString);
+        try{
+            const isConnected = this.isConnected;
+            if(this.ws && isConnected){
+                const msgString = JSON.stringify(msg);
+                this.ws.send(msgString);
+            }
         }
+        catch{
+            console.log("An Error when Send info to server is connecting!")
+        }
+       
     }
     authentication(){
         const store = this.store;
@@ -185,7 +239,6 @@ export default class Realtime{
         ws.onclose = () => {
             this.isConnected = false;
             this.store.update();
-
         }
 
         ws.onerror = () => {

@@ -24,7 +24,7 @@ function isDblTouchTap(event) {
   return isFastDblTouchTap;
 }
 
-let initialPosition;
+// let initialPosition;
 
 const MusicArt = ({ data, rating, audioEl }) => {
   const swipeUpHandler = useSwipeable({

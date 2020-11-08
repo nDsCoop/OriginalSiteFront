@@ -1,19 +1,22 @@
 import React, { Component } from 'react'
-import defaultImg from '../images/Logosvg3.svg';
+// import defaultImg from '../images/Logosvg3.svg';
 import className from 'classnames';
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 import { OrderedMap } from 'immutable';
-import _, { chunk } from 'lodash';
+import _ from 'lodash';
 import {ObjectID} from "../helpers/objectid";
 import { IconButton } from '@material-ui/core';
-import { CgSoftwareUpload } from 'react-icons/cg'
-import { MdSettings, MdDeleteForever, MdInsertEmoticon, MdMic } from 'react-icons/md';
-import moment from 'moment';
+import { CgCloseO, CgSoftwareUpload, CgMoreVerticalAlt } from 'react-icons/cg'
+import { SiConvertio } from 'react-icons/si';
+import { FaSun, FaMoon } from 'react-icons/fa';
+import { MdSettings, MdDeleteForever, MdInsertEmoticon, MdMic, MdVideocam, MdNavigateNext, MdPlayCircleOutline } from 'react-icons/md';
+// import moment from 'moment';
+import Moment from 'react-moment';
 import { UserBar } from "./UserBar";
 import Dropzone from "react-dropzone";
 import Picker, { SKIN_TONE_MEDIUM_DARK } from 'emoji-picker-react';
 import AudioAnalyser from './library/AudioAnalyser';
-// import { ReactMic } from 'react-mic';
+import Draggable from './Draggable';
 
 
 
@@ -31,8 +34,102 @@ export default class App3 extends Component {
             temp : 5000,
             isShowGetAud: false,
             record: false,
+            openToolChat: false,
+            English: true,
+            iShowConfig: false,
+            idRoomChat: '',
+            redirect: false,
+            isDark: true,
         }
 
+    }
+    
+    updateTheme = (theme) => {
+      
+        console.log(this.state.isDark);
+        console.log(typeof(theme));
+        const themeBool = JSON.parse(theme);
+        console.log(typeof(themeBool));
+        this.setState({
+            isDark : !themeBool
+        })
+    }
+
+    handleChangeTheme = (e) => {
+        
+        const { isDark } = this.state;
+        e.preventDefault();
+
+        if(!isDark){
+            this.setState({
+                isDark: true
+            })
+        } else {
+            this.setState({
+                isDark: false
+            })
+        }
+        this.sendThemeToLocal()
+    }
+
+    sendThemeToLocal = () => {
+        const { isDark } = this.state;
+        const { store } = this.props;
+       
+            store.setThemeToLocalStorage(isDark);
+        
+        console.log("Sent: ", isDark);
+    }
+
+    getRandomInt(max) {
+        return Math.floor(Math.random() * Math.floor(max));
+    }
+
+
+    handleCreateR = (e) => {
+        e.preventDefault();
+            const idRoomChat = this.generateId(24);
+            this.setState({idRoomChat: idRoomChat});
+            console.log(idRoomChat);
+      }
+    dec2hex = (dec) => {
+        return dec < 10
+        ? '0' + _.toString(dec)
+        : dec.toString(16)
+    }
+    generateId = (len) => {
+        var arr = new Uint8Array((len || 40) / 2)
+        window.crypto.getRandomValues(arr)
+        return Array.from(arr, this.dec2hex).join('')
+    }
+
+    handleCreateRoom = (e) => {
+        const { store } = this.props;
+        e.preventDefault();
+        const { idRoomChat } = this.state;
+       
+
+        if(_.trim(idRoomChat).length){
+            const messageId = new ObjectID().toString();
+            const channel = store.getActiveChannel();
+            const channelId = _.get(channel , '_id', null);
+            const currentUser = store.getCurrentUser();
+            const message = {
+                _id: messageId,
+                channelId: channelId,
+                body : 'A new Face Moment Created with ID: '+ idRoomChat,
+                userId: _.get(currentUser, '_id'),
+                type:"text",
+                me: true,
+            };
+            
+            store.addMessage(messageId, message);
+        }
+        
+        this.setState({
+            iShowConfig: false,
+            redirect: true,
+        });
     }
    
    
@@ -64,19 +161,19 @@ export default class App3 extends Component {
             // console.log("File goc", file);
             const formData = new FormData();
             formData.append('file', file[0] );
-            // store.upLoadfile(formData);
+            store.upLoadfile(formData);
         }
     }
         
     //stop
     stopRecording() {
        if(this.state.audio !== null){
-        this.state.audio.getTracks().forEach(track => track.stop());
-        this.setState({ audio: null });
-        this.setState({ record: false }); 
-       } else {
-           console.log("Error shortage-lenght!");
-       }
+            this.state.audio.getTracks().forEach(track => track.stop());
+            this.setState({ audio: null });
+            this.setState({ record: false }); 
+        } else {
+            console.log("Error shortage-lenght!");
+        }
                
         
     }
@@ -94,17 +191,13 @@ export default class App3 extends Component {
 
         onDrop = (files) => {
             const {store} = this.props;
-            console.log("file goc: ",files);
-            let formData = new FormData;
+            // console.log("file goc: ",files);
+            let formData = new FormData();
             formData.append("file", files[0]);
             store.upLoadfile(formData);
-            console.log("file format: ",formData);
+            // console.log("file format: ",formData);
         }
 
-
-        componentWillUnmount() {
-            this.stopCheckingTyping()
-        }
 
         sendTyping = () =>{
             const { store } = this.props;
@@ -124,7 +217,7 @@ export default class App3 extends Component {
 	*/
         startCheckingTyping = ()=>{
             console.log("Typing");
-            this.typingInterval = setInterval(()=>{
+            this.typingInterval = setInterval(() => {
                 if((Date.now() - this.lastUpdateTime) > 350){
                     this.setState({isTyping:false})
                     this.stopCheckingTyping()
@@ -135,7 +228,7 @@ export default class App3 extends Component {
 	*	stopCheckingTyping
 	*	Start the interval from checking if the user is typing.
 	*/
-        stopCheckingTyping = ()=>{
+        stopCheckingTyping = () => {
             const { store } = this.props;
             const activeChannel = store.getActiveChannel();
             console.log("Stop Typing");
@@ -157,15 +250,13 @@ export default class App3 extends Component {
 
         const avatars = members.map((user, index) => {
 
-
-
-            return index < maxDisplay ?  <img key={index} src={_.get(user, 'avatar')} alt={_.get(user, 'name')} /> : null
+            return index < maxDisplay ?  <img key={index} src={`http://localhost:8080/${_.get(user, 'avatar')}`} alt={_.get(user, 'name')} /> : null
 
         });
 
-
         return <div className={className('channel-avatars', `channel-avatars-${total}`)}>{avatars}</div>
     }
+
     renderChannelTitle = (channel = null) => {
         const { store } = this.props;
         const members = store.getMembersFromChannel(channel);
@@ -217,36 +308,28 @@ export default class App3 extends Component {
             this.messagesRef.scrollTop = this.messagesRef.scrollHeight;
         }
     }
-    // renderMessage(message){
-    //     const txt = _.get(message, 'body' , '');
-    //     const html = _.split(txt, '\n').map((m, key) => {
-    //         return <p key={key} dangerouslySetInnerHTML={{ __html: m }}></p>
-    //     })
+ 
 
-    //         message.substring(0, 8) === "uploads/" ?
-    //             // this will be either video or image 
-
-    //             message.substring(message.length - 3, message.length) === 'mp4' ?
-    //                 <video
-    //                     style={{ maxWidth: '200px' }}
-    //                     src={`http://localhost:3000/${message.body}`} alt="video"
-    //                     type="video/mp4" controls
-    //                 />
-    //                 :
-    //                 <img
-    //                     style={{ maxWidth: '200px' }}
-    //                     src={`http://localhost:5000/${message.body}`}
-    //                     alt="img"
-    //                 />
-    //         :
-    //         <p>
-    //             {message.body}
-    //         </p>
-
+    handlePlayMusic = (music) => {
+       
+        try {
+            this.audio.pause();
+            this.audio.currentTime = 0;
+         
+        } catch (e) {
+          console.log(e);
+        }
+       
+        this.audio = new Audio(music);
+        this.audio.play();
         
-        
-    //     return html;
-    // }
+    }
+
+
+    handleStopMusic = (music) => {
+        this.audio = new Audio(music);
+        this.audio.pause()
+    }
     handleSubmit = (e) => {
 
         const { newMessage } = this.state;
@@ -322,16 +405,21 @@ export default class App3 extends Component {
     // }
     componentDidUpdate(){
         this.scrollMessagesToBottom();
+        // console.log(this.state.isDark)
         // console.log("CDidUpdate");
        
     }
     componentDidMount(){
+        const { store } = this.props;
         window.addEventListener('resize', this._onResi);
         window.addEventListener('mousedown', this.onClickOutSide);
+        const theme = store.getThemeFromLocalStorage();
+        this.updateTheme(theme);
         // this.addTestMessages();
         // console.log("CDidMount");
     }
     componentWillUnmount(){
+        this.stopCheckingTyping()
         window.removeEventListener('resize', this._onResi);
         window.removeEventListener('mousedown', this.onClickOutSide);
         // console.log("CWillUnMount");
@@ -339,25 +427,27 @@ export default class App3 extends Component {
     
     render() {
 
-        const { height, newMessage, showEmoji, isShowGetAud} = this.state;
+        const { height, newMessage, showEmoji, isShowGetAud, openToolChat, English, iShowConfig, redirect, isDark } = this.state;
         const { store } = this.props;
-        // const isConnected = store.isConnected();
+        const isConnected = store.isConnected();
         const activeChannel = store.getActiveChannel();
         const messages = store.getMessagesFromChannel(activeChannel);
         const members = store.getMembersFromChannel(activeChannel);
         const channels = store.getChannels();
         const usersList = store.getSearchUsers();
         const me = store.getCurrentUser();
+      
 
         const onEmojiClick = (event, emojiObject) => {
             this.setState({newMessage:`${emojiObject.emoji}`});
-            console.log(`${emojiObject.emoji}`);
+            // console.log(`${emojiObject.emoji}`);
         }
        
 
         const style = {
             height: height,
         }
+        
         const resultSearch = () => {
 
                 return (
@@ -365,7 +455,7 @@ export default class App3 extends Component {
                         <div className="user-list">
                         {usersList.map((user, index) =>{
                             return <div onClick={() => this.handleOnClick(user)} key={index} className="user">
-                            <img src={user.avatar} alt={user.name} />
+                            <img src={`http://localhost:8080/${user.avatar}`} alt={user.name} />
                             <span>{user.name}</span>
                         </div>
                         })
@@ -374,12 +464,20 @@ export default class App3 extends Component {
                     </div>
                 )
         }
+        if(redirect){
+            return <Redirect to={"/page3/Facemoment/" 
+            + this.state.idRoomChat
+            + '?' + _.get(me, '_id') + this.getRandomInt(9)
+        }/>
+        }
+
         return (
+
             <div style={style} className="app3">
-               <div className="chat-header">
+               <div className={className('chat-header', {'darkTheme': !isDark})}>
                     <div className="header-left">
                         <div className="action">
-                            <Link onClick={(e) => this._onCreateChannel(e)} className="btn-primary">AddNew</Link>
+                            <Link to='' onClick={(e) => this._onCreateChannel(e)} className="btn-primary">AddNew</Link>
                         </div>
                     </div>
                     {_.get(activeChannel, 'isNew') ? <div className="toolbar">
@@ -387,7 +485,7 @@ export default class App3 extends Component {
                             <textarea
                             type="text"
                             value ={ this.state.searchUser }
-                            placeholder="To UserName/Email"
+                            placeholder="Name/ID/Email"
                             onChange = {(e) => {
                                 const searchTxt = _.get(e, 'target.value');
                                 this.setState({
@@ -395,7 +493,6 @@ export default class App3 extends Component {
                                 }, () => {
                                     store.startSearchUsers(searchTxt);
                                 })
-                                
                             }}
                             />
                         </form>
@@ -407,17 +504,17 @@ export default class App3 extends Component {
                     </div>
                     <div className="header-right">
                         <UserBar store = { store } />
-                        <div className="toolsRight-bar">
-                        <IconButton  style={{ color: "rgba(0, 0, 0, 0.5)"}}>
-                            <MdSettings />
-                        </IconButton>
+                        <div className="toolsRight-bar" >
+                            <IconButton onClick={this.handleChangeTheme} style={{ color: "rgba(199, 119, 199, 0.9)"}}>
+                                { !isDark ? <FaSun /> : <FaMoon />}
+                            </IconButton>
                         </div>
                     </div>
                 </div>
-                <div className="chat-main">
-                    <div className="sidebar-left">
+                <div className='chat-main'>
+                    <div className={className('sidebar-left', {'darkTheme': !isDark})}>
                         <div className="chanels">
-                            {channels.map((channel, index) =>{
+                            {channels.map((channel, index) => {
                                 return (
                                     <div onClick= {(index) => {
                                         store.setActiveChannelId(channel._id);
@@ -427,7 +524,11 @@ export default class App3 extends Component {
                                         </div>
                                         <div className={className('chanel-info',{'notify': _.get(channel, 'notify', null)})}>
                                             {this.renderChannelTitle(channel)}
-                                            {/* <p>{channel.lastMessage}</p> */}
+                                            <p>{
+                                            (( `${channel.lastMessage}`).substring(0, 7) === 'uploads') ? 'An Attached file'
+                                            :
+                                            `${channel.lastMessage}`
+                                            }</p>
                                         </div>
                                     </div>
                                 )
@@ -435,21 +536,111 @@ export default class App3 extends Component {
                             
                         </div>
                     </div>
-                    <div className="chat-content">
-                        <div className="toolChat">
-                            <Dropzone onDrop={this.onDrop}>
-                                {({getRootProps, getInputProps}) => (
-                                    <section>
-                                    <div {...getRootProps()}>
-                                        <input {...getInputProps()} />
-                                        <IconButton>
-                                            <CgSoftwareUpload />
-                                        </IconButton>
+                    {
+                        iShowConfig ?  <Draggable style={{
+                            zIndex: 101,
+                            position: 'absolute',
+                            right: 0,
+                            cursor: 'move',
+                            maxHeight: '40rem',
+                        }}>
+                            <div className="conf-video">
+                                 <ul className="form-container">
+                                     <h4>
+                                        Config Face Moment
+                                     </h4>
+                                     <form onSubmit={this.handleCreateRoom} >
+                                     <li>
+                                        <label htmlFor="text">
+                                        ID Room
+                                        </label>
+                                        <input
+                                        // onChange={(e) => this.onTxtfieldChange(e) } 
+                                        placeholder="ndsRoom" 
+                                        required="true" type="text" name="room"
+                                        value ={ this.state.idRoomChat }
+                                        onChange = {({target})=>{
+                                            this.setState({ idRoomChat: target.value })
+                                        }}
+                                        id="room" ></input>
+                                    </li>
+                                    <li>
+                                        <div onClick = {this.handleCreateR} className="autofill-ID">CreateRanDom</div>
+                                    </li>
+                                     </form>
+                                    
+                                    <div className="footer-conf-video">
+                                       
+                                        <button type="button"  onClick = { (e) => {this.setState({iShowConfig: false})}} className="login-btn">CANCEL</button>
+                                        <button type="submit"  onClick = {this.handleCreateRoom} className="login-btn">CONTINUE</button>
+                                         
                                     </div>
-                                    </section>
-                                )}
-                            </Dropzone>
+
+                                    <div>
+                                        <h5>Instruction <SiConvertio onClick = {(e) => {this.setState({English: !English})}}/></h5>
+
+                                        {English ?  <p>
+                                            <li>Enter ID for the Face Moment room and choose continue</li>
+                                            <li>Continue means you accept access we using your account registered with the system. And all are confidential.</li>
+                                            <li>Make sure your friend knows <b>exactly</b> ID of the Face Moment room so they can re-enter and continue with it</li>
+                                            <li>After choosing to continue, the browser will open a Face Moment window consisting of people who have joined by the room name Face Moment</li>
+                                            <li style={{alignItems:'center'}}>To leave the Face Moment session you select the <CgCloseO /> icon, Face Moment will self-cancel when there is no member.</li>
+                                            <li>Shouldn't leaving Face Moment <b>the wrong way</b> to avoid affecting the connection of the other people.</li>
+                                            <span>ThankYou so much, according to nDs</span>
+                                        </p>
+                                        :
+                                        <p>
+                                            <li>Nhập ID phòng Face Moment và chọn tiếp tục</li>
+                                            <li>Tiếp tục đồng nghĩa bạn chấp nhận truy cập dùng tài khoản của bạn đã đăng kí với hệ thống. Và tất cả đều được bảo mật.</li>
+                                            <li>Đảm bảo rằng bạn của bạn biết <b>chính xác</b> ID của phòng Face Moment để họ có thể nhập lại và tiếp tục với nó</li>
+                                            <li>Sau khi chọn tiếp tục trình duyệt sẽ mở cửa sổ Face Moment gồm những người đã tham gia bằng tên phòng Face Moment</li>
+                                            <li style={{alignItems:'center'}}>Để rời khỏi phiên Face Moment bạn chọn vào biểu tượng <CgCloseO />, Face Moment sẽ tự huỷ khi không còn thành viên nào.</li>
+                                            <li>Hạn chế rời khỏi Face Moment <b>sai cách</b> để tránh ảnh hưởng đến kết nối của những người còn lại.</li>
+                                            <span>Cảm ơn mọi người, theo nDs</span>
+                                        </p>
+                                        }
+                                       
+                                        
+                                    </div>
+                                 </ul>
+                            </div>
+                        </Draggable>
+                        : null
+                    }
+                   
+                    <div className={className("chat-content", {'darkTheme': !isDark})}>
+                    {   me ? <div className={className("toolChat", {'darkTheme': !isDark})}>
+                            <div>
+                                {!openToolChat ?  <IconButton style={{ color: "rgba(199, 119, 199, 0.9)"}} onClick = {()=>this.setState({openToolChat: !openToolChat})}><CgMoreVerticalAlt /></IconButton> : <div className="toolChats">
+                                    <IconButton style={{ color: "rgba(199, 119, 199, 0.9)"}} onClick = {()=>this.setState({iShowConfig: !iShowConfig})}>
+                                        <MdVideocam />
+                                    </IconButton>
+                                     <IconButton style={{ color: "rgba(199, 119, 199, 0.9)"}}>
+                                    <Dropzone onDrop={this.onDrop}>
+                                        {({getRootProps, getInputProps}) => (
+                                            <section>
+                                            <div {...getRootProps()}>
+                                                <input {...getInputProps()} />
+                                                    <CgSoftwareUpload />
+                                            </div>
+                                            </section>
+                                        )}
+                                    </Dropzone>
+                                    </IconButton >
+                                    <IconButton style={{ color: "rgba(199, 119, 199, 0.9)"}} onClick = {(e) => {this.setState({openToolChat: !openToolChat})}}>
+                                        <MdNavigateNext  />
+                                    </IconButton>
+                                </div>
+                                }
+                            </div>
+                           
                         </div>
+                        : 
+                        <div className={className("app-say", {'darkTheme': !isDark})}>
+                            <h3>LOGIN to ACTIVE PAGE</h3>
+                        </div>
+                    }
+                        
                         <div ref={(ref) => this.messagesRef = ref} className="messages">
                             { 
                                 messages.map((mess, index) => { 
@@ -457,33 +648,31 @@ export default class App3 extends Component {
                                     return (
                                     <div key={index} className={`${mess.me ? 'message-me' : 'message'}`}>
 
-                                    <img src={_.get(user, 'avatar')} alt="user-img" className="img-user"></img>
+                                    <img src={`http://localhost:8080/${_.get(user, 'avatar')}`} alt="user-img" className="img-user"></img>
 
                                     <div className="message-body">
 
                                         <div className="username">{`${mess.me ? 'You' : _.get(mess, 'user.name')}`} say: </div>
                                         
                                         <p className="message-text">
-                                                { `${mess.body}`.substring(0, 8) === "uploads/" ?
+                                    
+                                                { (mess.type === `text`) ? <p>{mess.body}</p>
                                                 // this will be either video or image 
-
-                                                (`${mess.body}`).substring((`${mess.body}`).length - 3, (`${mess.body}`).length) === 'mp3' ? 
-                                                    <video
-                                                        style={{ maxWidth: '20rem' }}
-                                                        src={`http://localhost:8080/${mess.body}`} alt="video"
-                                                        type="video/mp4" controls
-                                                    />
+                                                :
+                                                
+                                                ((`${mess.body}`).substring((`${mess.body}`).length - 3, (`${mess.body}`).length) === 'mp3' ? 
+                                        
+                                                    <div className="audio-message" > <MdPlayCircleOutline style={{fontSize: '1.5rem', alignItems:'center'}} onClick= {() => this.handlePlayMusic(`http://localhost:8080/${mess.body}`)} /> Click to Play</div>
                                                     :
-                                                    <img
-                                                        style={{ maxWidth: '20rem' }}
-                                                        src={`http://localhost:8080/${mess.body}`}
-                                                        alt="img"
-                                                    />
-                                            :
-                                            <p>{mess.body}</p>
-                                            } 
+                                                    ((`${mess.body}`).substring((`${mess.body}`).length - 3, (`${mess.body}`).length) === 'mp4' ?
+                                                        <video style={{ maxWidth: '20rem' }} src={`http://localhost:8080/${mess.body}`} alt="video" controls />
+                                                        :
+                                                        <img style={{ maxWidth: '20rem' }} src={`http://localhost:8080/${mess.body}`} alt="img" />
+                                                    )
+                                                    )
+                                             } 
                                             {/* { this.renderMessage(mess) } */}
-                                            <p className="timing">{mess.timing}</p>
+                                            <p className="timing"><Moment fromNow>{mess.created}</Moment></p>
 
                                         </p>
                                     </div>
@@ -512,7 +701,7 @@ export default class App3 extends Component {
                                 onSubmit= { this.handleSubmit }
                                 disabled = { newMessage.length < 1 }
                                 className="message-form">
-                                <IconButton onClick = {() => {this.setState({showEmoji: !showEmoji})}}>
+                                <IconButton style={{ color: "rgba(199, 119, 199, 0.9)"}} onClick = {() => {this.setState({showEmoji: !showEmoji})}}>
                                     <MdInsertEmoticon />
                                 </IconButton>
                                 <textarea  
@@ -538,7 +727,7 @@ export default class App3 extends Component {
 
                                 
                                             {/*onClick = {() => this.toggleMicrophone()} */}
-                                        <IconButton  >
+                                        <IconButton style={{ color: "rgba(199, 119, 199, 0.9)"}} >
                                         <MdMic onMouseDown= {() => {this.startRecording()}} onMouseUp= {() => {this.stopRecording()}} />
                                         </IconButton>
                             
@@ -555,7 +744,7 @@ export default class App3 extends Component {
                         }
                     </div>
                    
-                    <div className="sidebar-right">
+                    <div className={className("sidebar-right", {'darkTheme': !isDark})}>
                         <div className="title-right">Members</div>
                         <div className="chanels">
                             { members.map((member, index) => {
@@ -565,12 +754,12 @@ export default class App3 extends Component {
                                     <div key ={ index } className="chanel">
 
                                         <div className="user-img-channel">
-                                            <img src={_.get(member, 'avatar')} alt="user-img" />
+                                            <img src={`http://localhost:8080/${_.get(member, 'avatar')}`} alt="user-img" />
                                             <span className={className('user-status', {'online': isOnline})}></span>
                                         </div>
                                         <div className="chanel-info">
                                             <h4>{ member.name }</h4>
-                                            <p>Joined: 2000 years ago</p>
+                                            <p><Moment fromNow>2020-10-23T23:28:11.746Z</Moment></p>
                                         </div>
                                         <div onClick = {() => {
                                             store.removeMemberFromChannel(activeChannel, member);
@@ -588,7 +777,23 @@ export default class App3 extends Component {
                         </div>
                         
                     </div>
+                    
 
+                </div>
+                
+               <div className={className("chat-footer", {'darkTheme': !isDark})}>
+                    <div className="footer-left">
+                        <div className="action">
+                            {/* <Link to='' onClick={(e) => this._onCreateChannel(e)} className="btn-primary">AddNew</Link> */}
+                        </div>
+                    </div>
+                
+                    <div className="footer-mid">
+                       <h4>AllRight nDs, 2020</h4>
+                    </div>
+                    <div className="footer-right">
+                    {!me && !isConnected ? <div className="app-warning-state">Reconnecting..</div> : <div className="app-success-state">Connected</div>}
+                    </div>
                 </div>  
             </div>
         )

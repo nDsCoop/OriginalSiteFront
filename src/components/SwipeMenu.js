@@ -5,18 +5,18 @@ import sun from "../images/sun.svg";
 
 import {
   SwipeableDrawer,
-  Avatar,
+  // Avatar,
   Divider,
-  Button,
+  // Button,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  Link as MaterialLink
+  // Link as MaterialLink
 } from "@material-ui/core";
 
 import {
-  AccountCircle,
+  // AccountCircle,
   Feedback,
   Info,
   FreeBreakfast,
@@ -24,7 +24,7 @@ import {
   Settings
 } from "@material-ui/icons";
 
-import { motion, AnimatePresence } from "framer-motion"
+import { AnimatePresence } from "framer-motion"
 
 import { Link } from "react-router-dom";
 

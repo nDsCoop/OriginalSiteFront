@@ -1,15 +1,16 @@
-import React, {useContext, useCallback} from "react";
+import React, {useContext} from "react";
 import {
-  FormControl,
+  // FormControl,
   TextField,
   Button,
   Grid,
-  CircularProgress,
+  // CircularProgress,
   LinearProgress
 } from "@material-ui/core";
 import { loadReCaptcha, ReCaptcha } from "react-recaptcha-v3";
-import axios from "axios";
+import axios from "../../apis/axios";
 import { GlobalContext } from "../GlobalState";
+import SnackbarMessage from "../SnackbarMessage";
 
 let captchaToken;
 const FeedbackForm = () => {
@@ -21,10 +22,11 @@ const FeedbackForm = () => {
     },
     [dispatch]
   );
+  
   const [isSending, setIsSending] = React.useState(false);
   const formEl = React.useRef(null);
 
-  const submitForm = e => {
+  const submitForm = async (e) => {
     // set state to sending
     setIsSending(true);
     const formData = new FormData(formEl.current);
@@ -38,37 +40,39 @@ const FeedbackForm = () => {
       name: name,
       email: email,
       message: message,
-      captcha: captchaToken
-    };
+      token: captchaToken,
+      timestamp: new Date(),
+      }
 
-    axios
-      .post("http://localhost:3000", post)
-      .then(function(response) {
-        console.log(response.data.status);
-        // also clear the form
-        formEl.current.reset();
-        setSnackbarMsg(response.data.status);
-        setIsSending(false);
-      })
-      .catch(function(error) {
-        // console.log(error.response.status);
-        if (error.response) {
-          if (error.response.status === 429) {
+    await axios
+          .post('/ndsapi/feedback', post)
+          .then(function(response) {
+            // console.log(response.data.status);
+            console.log(response.data.message);
+            // also clear the form
             formEl.current.reset();
+            setSnackbarMsg(`Sent your message: ${response.data.message}`);
+            setIsSending(false);
+          })
+          .catch(function(error) {
+            // console.log(error.response.status);
+            if (error.response) {
+              if (error.response.status === 429) {
+                formEl.current.reset();
 
-            setSnackbarMsg("We accept limited feedback!");
-          }
-        }
-        setIsSending(false);
-      });
-  };
+                setSnackbarMsg("We accept limited feedback!");
+              }
+            }
+            setIsSending(false);
+          });
+      };
 
   React.useEffect(() => {
     loadReCaptcha("6Le1toEUAAAAAITyNwqEMaz3hFAYzciSJDMomrgN");
   }, []);
 
   const verifyCallback = token => {
-    // console.log(token);
+    console.log(token);
     captchaToken = token;
     const captchaBox = document.querySelector(".grecaptcha-badge");
     captchaBox.remove();
@@ -85,6 +89,7 @@ const FeedbackForm = () => {
       justify="center"
       style={{ width: "90%", maxWidth: "500px", margin: "0 auto" }}
     >
+      <SnackbarMessage />
       <ReCaptcha
         sitekey="6Le1toEUAAAAAITyNwqEMaz3hFAYzciSJDMomrgN"
         action="action_name"

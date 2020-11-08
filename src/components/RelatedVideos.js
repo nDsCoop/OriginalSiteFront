@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { RiRepeatOneLine, RiRepeat2Fill, RiHome2Line} from 'react-icons/ri';
@@ -12,19 +12,18 @@ import {
   ListItemIcon,
   ListItemText,
   Grid,
-  Divider,
+  // Divider,
   LinearProgress
 } from "@material-ui/core";
 
 import {
-  Home,
   MusicVideo,
-  LibraryMusic,
-  Shuffle,
-  Repeat,
+  // LibraryMusic,
+  // Shuffle,
+  // Repeat,
   KeyboardArrowUp,
   KeyboardArrowDown,
-  RepeatOne
+  // RepeatOne
 } from "@material-ui/icons";
 
 

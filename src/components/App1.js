@@ -1,5 +1,5 @@
 import React, {useState} from 'react'
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 // import Hero from './Hero';
 import Banner from './Banner';
@@ -15,7 +15,7 @@ import mock1 from "./data1.js/mockName";
 import mock2 from "./data1.js/mockWind";
 import mock3 from "./data1.js/mockCoord";
 import mock4 from "./data1.js/mockMain";
-import Datetime1 from './Datetime1';
+// import Datetime1 from './Datetime1';
 
 
 
@@ -41,12 +41,12 @@ const App1 = () => {
     setCity(res.data);
     
     // 
-    if((res.data.main.temp))
+    if(res.data)
     {
-      setImg("../images/defaultBcg.jpg");
+      setImg("../images/imgWeather3.jpg");
     }
     else {
-      setImg("../images/defaultBcg.jpg");
+      setImg(null);
     }
   }
  
@@ -55,7 +55,7 @@ const App1 = () => {
    
   // }, [])
     return (
-      <StyledHero>
+      <StyledHero img={img}>
          <Wrapper>
           <div className='container'>
             <Banner title="Weather App" subtitle="Where you pass the mind?">
@@ -73,9 +73,9 @@ const App1 = () => {
     );
   };
   const Wrapper = styled.section`
-    min-height: 100vh;
+    /* min-height: 100vh; */
     display: grid;
-    width: 60vw;
+    /* width: 60vw; */
     place-items: center;
     text-align: center;
     /* .container {

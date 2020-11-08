@@ -5,7 +5,6 @@ class AudioVisualiser extends Component {
     super(props);
     this.canvas = React.createRef();
   }
-
   componentDidUpdate() {
     this.draw();
   }
@@ -18,8 +17,7 @@ class AudioVisualiser extends Component {
     const context = canvas.getContext('2d');
     let x = 0;
     const sliceWidth = (width * 1.0) / audioData.length;
-
-    context.lineWidth = 1.5;
+    context.lineWidth = 1.68;
     context.strokeStyle = 'rgba(199, 119, 199, 0.9)';
     context.clearRect(0, 0, width, height);
 
@@ -35,7 +33,7 @@ class AudioVisualiser extends Component {
   }
  
   render() {
-    return <canvas width="1250px" height="400px" ref={this.canvas}>
+    return <canvas width="700px" height="700px" ref={this.canvas}>
     </canvas>;
   }
 }
