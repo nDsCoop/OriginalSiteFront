@@ -1,0 +1,60 @@
+.dark {
+  background: url("../images/darkBg2.jpg") center/cover no-repeat;
+  background-attachment: scroll;
+  /* background: #4d6472; */
+  color: #fff;
+}
+
+.dark #navbar {
+  background: #324b5a;
+}
+
+.dark div.MuiTabs-root {
+  background: #1e3442;
+}
+
+.dark .main-player-inner {
+  /* background: #335164; */
+  background: url("../images/darkBg2.jpg") center/cover no-repeat;
+  background-attachment: scroll;
+}
+
+.dark .RelatedVideoContainer {
+  background: #4d6472;
+  ;
+}
+
+.dark .playlistHeader,
+.dark .mainContainer {
+  background: rgb(49, 58, 73);
+}
+
+.dark .MuiTab-textColorPrimary {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dark .pinkLists > a,
+.dark .pinkLists svg {
+  color: #fff;
+  fill: #ffff;
+}
+
+.dark .pinkLists > a {
+  background: #4d6472;
+}
+.dark .pinkLists > a:hover {
+  background: #a7c7d3;
+}
+.dark .mediaPlayerContainer {
+  background: #42636d;
+}
+.wholePlayer {
+  background: #4d6472;
+}
+
+.dark .searchPopper {
+  background: #4d6472;
+}
+.musicArtTitle{
+  color: #e91d63;
+}
